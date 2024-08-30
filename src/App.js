@@ -26,52 +26,46 @@ function App() {
   }, []);
 
   const setupLibp2p = async () => {
-    const relayAddr = '/ip4/172.26.99.162/tcp/9002/p2p/12D3KooWPYmpzKm1de6jsoSXTp6JBay4EP52HAw6n8S23d9sQnbs'
+    const relayAddr = '/ip4/172.26.99.162/tcp/9001/ws/p2p/12D3KooWJ6H3FKhxopPddJebESwBtbepD5edStcze2BLsYWERV2B'
 
     const node = await createLibp2p({
       addresses: {
         listen: [
-          // 👇 Listen for webRTC connections
+          // 👇 Listen for webRTC connection
           '/webrtc',
         ],
       },
       transports: [
-        // Allow all WebSocket connections inclusing without TLS
-        webSockets({ filter: filters.all }),
+        webSockets({
+          // Allow all WebSocket connections inclusing without TLS
+          filter: filters.all,
+        }),
         webTransport(),
         webRTC(),
+        // 👇 Required to create circuit relay reservations in order to hole punch browser-to-browser WebRTC connections
         circuitRelayTransport({
           discoverRelays: 1,
         }),
       ],
-      connectionEncryption: [
-        noise()
-      ],
-      streamMuxers: [
-        yamux()
-      ],
+      connectionEncryption: [noise()],
+      streamMuxers: [yamux()],
       connectionGater: {
+        // Allow private addresses for local testing
         denyDialMultiaddr: async () => false,
-      },
-      services: {
-        identify: identify(),
-        pubsub: gossipsub(),
-        // dcutr: dcutr()
       },
       peerDiscovery: [
         bootstrap({
-          list: [relayAddr]
+          list: [relayAddr],
         }),
         pubsubPeerDiscovery({
-          // Every 10 seconds publish our multiaddrs
           interval: 10_000,
-          // The topic that the relay is also subscribed to
           topics: [PUBSUB_PEER_DISCOVERY],
         }),
       ],
-      connectionManager: {
-        minConnections: 0
-      }
+      services: {
+        pubsub: gossipsub(),
+        identify: identify(),
+      },
     })
 
     setNode(node)
@@ -82,8 +76,8 @@ function App() {
 
     // console.log(`Connected to the relay ${conn.remotePeer.toString()}`)
 
-    // console.log('peers')
-    // console.log(node.getPeers());
+    console.log('peers')
+    console.log(node.getPeers());
 
     // Wait for connection and relay to be bind for the example purpose
     node.addEventListener('self:peer:update', (evt) => {
@@ -91,24 +85,10 @@ function App() {
       console.log(`Advertising with a relay address of ${JSON.stringify(node.getMultiaddrs())}`)
     })
 
-    // let topic = 1;
-    // await node.services.pubsub.subscribe(topic)
-
-    // console.log('subscribed to topic ' + topic)
-
-    // // update peer connections
-    // node.addEventListener('connection:open', () => {
-    //   console.log('hey')
-    // })
-    // node.addEventListener('connection:close', () => {
-    //   console.log('hi')
-    // })
-
-    // await node.services.pubsub.publish(topic, "adsfadsf")
-
     // // update topic peers
     setInterval(() => {
       console.log(node.getPeers().length)
+      // console.log(node.getConnections())
       // const peerList = node.services.pubsub.getSubscribers(topic);
       // console.log(peerList)
       // .map(peerId => {
