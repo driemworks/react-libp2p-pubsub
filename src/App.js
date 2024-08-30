@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
 import { gossipsub } from '@chainsafe/libp2p-gossipsub'
@@ -7,13 +6,19 @@ import { yamux } from '@chainsafe/libp2p-yamux'
 import { circuitRelayTransport } from '@libp2p/circuit-relay-v2'
 import { dcutr } from '@libp2p/dcutr'
 import { identify } from '@libp2p/identify'
+import { webTransport } from '@libp2p/webtransport'
 import { webSockets } from '@libp2p/websockets'
 import * as filters from '@libp2p/websockets/filters'
 import { multiaddr } from '@multiformats/multiaddr'
 import { createLibp2p } from 'libp2p'
+import { bootstrap } from '@libp2p/bootstrap';
+import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery'
+import { webRTC } from '@libp2p/webrtc';
 
 function App() {
-  
+
+  const PUBSUB_PEER_DISCOVERY = 'browser-peer-discovery'
+
   const [node, setNode] = useState(null)
 
   useEffect(() => {
@@ -21,17 +26,23 @@ function App() {
   }, []);
 
   const setupLibp2p = async () => {
-    const relayAddr = '/ip4/172.26.99.162/tcp/41499/ws/p2p/12D3KooWDeKtjkbDHbMgjpatvyHjddB5oiWd7Espxe3oFLqwrSEd'
+    const relayAddr = '/ip4/172.26.99.162/tcp/9002/p2p/12D3KooWPYmpzKm1de6jsoSXTp6JBay4EP52HAw6n8S23d9sQnbs'
 
     const node = await createLibp2p({
+      addresses: {
+        listen: [
+          // 👇 Listen for webRTC connections
+          '/webrtc',
+        ],
+      },
       transports: [
-        webSockets({
-          // this allows non-secure WebSocket connections for purposes of the demo
-          filter: filters.all
-        }),
+        // Allow all WebSocket connections inclusing without TLS
+        webSockets({ filter: filters.all }),
+        webTransport(),
+        webRTC(),
         circuitRelayTransport({
-          discoverRelays: 2
-        })
+          discoverRelays: 1,
+        }),
       ],
       connectionEncryption: [
         noise()
@@ -40,19 +51,24 @@ function App() {
         yamux()
       ],
       connectionGater: {
-        denyDialMultiaddr: () => {
-          // by default we refuse to dial local addresses from browsers since they
-          // are usually sent by remote peers broadcasting undialable multiaddrs and
-          // cause errors to appear in the console but in this example we are
-          // explicitly connecting to a local node so allow all addresses
-          return false
-        }
+        denyDialMultiaddr: async () => false,
       },
       services: {
         identify: identify(),
         pubsub: gossipsub(),
-        dcutr: dcutr()
+        // dcutr: dcutr()
       },
+      peerDiscovery: [
+        bootstrap({
+          list: [relayAddr]
+        }),
+        pubsubPeerDiscovery({
+          // Every 10 seconds publish our multiaddrs
+          interval: 10_000,
+          // The topic that the relay is also subscribed to
+          topics: [PUBSUB_PEER_DISCOVERY],
+        }),
+      ],
       connectionManager: {
         minConnections: 0
       }
@@ -62,47 +78,51 @@ function App() {
 
     console.log(`Node started with id ${node.peerId.toString()}`)
 
-    const conn = await node.dial(multiaddr(relayAddr))
+    // const conn = await node.dial(multiaddr(relayAddr))
 
-    console.log(`Connected to the relay ${conn.remotePeer.toString()}`)
+    // console.log(`Connected to the relay ${conn.remotePeer.toString()}`)
+
+    // console.log('peers')
+    // console.log(node.getPeers());
 
     // Wait for connection and relay to be bind for the example purpose
     node.addEventListener('self:peer:update', (evt) => {
       // Updated self multiaddrs?
-      console.log(`Advertising with a relay address of ${node.getMultiaddrs()[0].toString()}`)
+      console.log(`Advertising with a relay address of ${JSON.stringify(node.getMultiaddrs())}`)
     })
 
-    let topic = 1;
-    await node.services.pubsub.subscribe(topic)
+    // let topic = 1;
+    // await node.services.pubsub.subscribe(topic)
 
-    console.log('subscribed to topic ' + topic)
+    // console.log('subscribed to topic ' + topic)
 
-    // update peer connections
-    node.addEventListener('connection:open', () => {
-      console.log('hey')
-    })
-    node.addEventListener('connection:close', () => {
-      console.log('hi')
-    })
+    // // update peer connections
+    // node.addEventListener('connection:open', () => {
+    //   console.log('hey')
+    // })
+    // node.addEventListener('connection:close', () => {
+    //   console.log('hi')
+    // })
 
     // await node.services.pubsub.publish(topic, "adsfadsf")
 
     // // update topic peers
-    // setInterval(() => {
-    //   const peerList = node.services.pubsub.getSubscribers(topic);
-    //   console.log(peerList)
-    //     // .map(peerId => {
-    //     //   // const el = document.createElement('li')
-    //     //   // el.textContent = peerId.toString()
-    //     //   // return el
-    //     //   console.log(peerId)
-    //     // })
-    //   // DOM.topicPeerList().replaceChildren(...peerList)
-    // }, 500)
+    setInterval(() => {
+      console.log(node.getPeers().length)
+      // const peerList = node.services.pubsub.getSubscribers(topic);
+      // console.log(peerList)
+      // .map(peerId => {
+      //   // const el = document.createElement('li')
+      //   // el.textContent = peerId.toString()
+      //   // return el
+      //   console.log(peerId)
+      // })
+      // DOM.topicPeerList().replaceChildren(...peerList)
+    }, 500)
   }
 
   const handleSub = async () => {
-    
+
   }
 
 
