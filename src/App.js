@@ -26,7 +26,7 @@ function App() {
   }, []);
 
   const setupLibp2p = async () => {
-    const relayAddr = '/ip4/172.26.99.162/tcp/9001/ws/p2p/12D3KooWJ6H3FKhxopPddJebESwBtbepD5edStcze2BLsYWERV2B'
+    const relayAddr = '/ip4/172.26.99.162/tcp/9001/ws/p2p/12D3KooWHBgpF8QdwQcffQ26ZwVs2KtveynK8QeHYLDcwbUDwCqg'
 
     const node = await createLibp2p({
       addresses: {
@@ -85,31 +85,30 @@ function App() {
       console.log(`Advertising with a relay address of ${JSON.stringify(node.getMultiaddrs())}`)
     })
 
+
+    node.services.pubsub.subscribe("test-topic")
+
+    node.services.pubsub.addEventListener('message', event => {
+      const topic = event.detail.topic
+      const message = toString(event.detail.data)
+    
+      console.log(`Message received on topic '${topic}'`)
+      console.log(event)
+    })
+
     // // update topic peers
     setInterval(() => {
       console.log(node.getPeers().length)
-      // console.log(node.getConnections())
-      // const peerList = node.services.pubsub.getSubscribers(topic);
-      // console.log(peerList)
-      // .map(peerId => {
-      //   // const el = document.createElement('li')
-      //   // el.textContent = peerId.toString()
-      //   // return el
-      //   console.log(peerId)
-      // })
-      // DOM.topicPeerList().replaceChildren(...peerList)
     }, 500)
   }
 
-  const handleSub = async () => {
-
+  const handlePubSub = async () => {
+    node.services.pubsub.publish("test-topic", [1])
   }
-
-
 
   return (
     <div className="App">
-      <button onClick={handleSub}>Connect to Peer</button>
+      <button onClick={handlePubSub}>Connect to Peer</button>
     </div>
   );
 }

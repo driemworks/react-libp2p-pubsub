@@ -14,7 +14,9 @@ import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery'
 // import { update, getPeerTypes, getAddresses, getPeerDetails } from './utils'
 import { bootstrap } from '@libp2p/bootstrap'
 import { circuitRelayServer } from '@libp2p/circuit-relay-v2'
-import { PUBSUB_PEER_DISCOVERY } from './constants.js'
+// import { PUBSUB_PEER_DISCOVERY } from './constants.js'
+
+const PUBSUB_PEER_DISCOVERY = 'browser-peer-discovery'
 
 async function main() {
   // enable('*')
