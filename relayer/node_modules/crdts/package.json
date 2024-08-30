@@ -1,0 +1,40 @@
+{
+  "name": "crdts",
+  "version": "0.2.0",
+  "description": "A library of Conflict-Free Replicated Data Types for JavaScript.",
+  "type": "module",
+  "main": "./src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orbitdb/crdts"
+  },
+  "bugs": "https://github.com/orbitdb/crdts/issues",
+  "author": "Haad",
+  "homepage": "https://github.com/orbitdb/crdts",
+  "license": "MIT",
+  "keywords": [
+    "crdt",
+    "crdts",
+    "g-counter",
+    "g-set",
+    "or-set",
+    "lww-set",
+    "2p-set"
+  ],
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha",
+    "coverage": "istanbul cover ./node_modules/mocha/bin/_mocha"
+  },
+  "localMaintainers": [
+    "haad <haad@haja.io>",
+    "shamb0t <shams@haja.io>",
+    "hajamark <mark@haja.io>"
+  ],
+  "devDependencies": {
+    "istanbul": "^0.4.5",
+    "mocha": "^10.2.0"
+  }
+}

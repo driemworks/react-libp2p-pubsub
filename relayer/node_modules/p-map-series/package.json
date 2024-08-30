@@ -1,0 +1,46 @@
+{
+	"name": "p-map-series",
+	"version": "3.0.0",
+	"description": "Map over promises serially",
+	"license": "MIT",
+	"repository": "sindresorhus/p-map-series",
+	"funding": "https://github.com/sponsors/sindresorhus",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "https://sindresorhus.com"
+	},
+	"type": "module",
+	"exports": "./index.js",
+	"engines": {
+		"node": ">=12"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"keywords": [
+		"promise",
+		"map",
+		"collection",
+		"iterable",
+		"iterator",
+		"fulfilled",
+		"serial",
+		"serially",
+		"async",
+		"await",
+		"promises",
+		"bluebird"
+	],
+	"devDependencies": {
+		"ava": "^3.15.0",
+		"delay": "^5.0.0",
+		"time-span": "^4.0.0",
+		"tsd": "^0.14.0",
+		"xo": "^0.38.2"
+	}
+}
